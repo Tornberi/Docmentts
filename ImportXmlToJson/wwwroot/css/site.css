@@ -1,0 +1,33 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+button {
+    position: relative;
+    bottom: 3px;
+}
+
+input {
+    height: 40px;
+    width: 400px;
+}
+
+p {
+    margin: 0;
+    text-indent: 3ch;
+}
