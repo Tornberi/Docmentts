@@ -1,17 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ImportXmlToJson.Models
 {
+    [Table("StageContract")]
     public class Imports
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [Display(Name="Наименование Этапа")]
-        public string NameStage { get; set; }
+        public string Contract_Stage { get; set; }
 
         [Display(Name="Дата начала")]
         [DataType(DataType.Date)]
-        public DateTime StardDate { get; set; }
+        public DateTime StartDate { get; set; }
+
         [Display(Name ="Дата окончания")]
         [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }

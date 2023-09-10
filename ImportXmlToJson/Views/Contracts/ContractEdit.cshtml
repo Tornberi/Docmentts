@@ -1,0 +1,33 @@
+﻿@using ImportXmlToJson.Domain;
+@model ImportXmlToJson.Models.Contract
+
+<div class="text-center">
+
+    <h1>Работа с записью</h1>
+
+    <div>
+        <form asp-controller="Contracts" asp-action="ContractEdit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All"></div>
+
+                <label asp-for="Shifr_Contract"></label>
+            <div>
+                <input asp-for="Shifr_Contract" style="margin-bottom: 20px"  />
+                <span asp-validation-for="Shifr_Contract"></span>
+            </div>
+
+                <label asp-for="Name_Contract"></label>
+            <div>                
+                <input asp-for="Name_Contract" style="margin-bottom: 20px" />
+                <span asp-validation-for="Name_Contract"></span>
+            </div>
+
+                <label asp-for="Seller"></label>
+            <div>
+                <input asp-for="Seller" ></input>
+                <span asp-validation-for="Seller"></span>
+            </div>
+            <input type="submit" value="Готово" class="btn btn-success" style="height: 50px; width: 200px; margin-top: 20px" />
+        </form>
+    </div>
+</div>

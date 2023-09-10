@@ -1,163 +1,86 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ImportXmlToJson.Domain;
+using ImportXmlToJson.Models;
+using OfficeOpenXml;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ImportXmlToJson.Data;
-using ImportXmlToJson.Models;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace ImportXmlToJson.Controllers
 {
     public class ContractsController : Controller
     {
-        private readonly ImportXmlToJsonContext _context;
+        private readonly ContractsRepository contractsRepository;
 
-        public ContractsController(ImportXmlToJsonContext context)
+        public ContractsController(ContractsRepository contractsRepository)
         {
-            _context = context;
+            this.contractsRepository = contractsRepository;
         }
 
-        // GET: Contracts
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-              return _context.Contract != null ? 
-                          View(await _context.Contract.ToListAsync()) :
-                          Problem("Entity set 'ImportXmlToJsonContext.Contract'  is null.");
+            var model = contractsRepository.GetContract();
+            return View(model);
+        }
+        public IActionResult ContractEdit(int? id)
+        {
+            Contract model = id == null ? new Contract() : contractsRepository.GetContractById(id);
+            return View(model);
         }
 
-        // GET: Contracts/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpPost]
+        public IActionResult ContractEdit(Contract model)
         {
-            if (id == null || _context.Contract == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                contractsRepository.SaveContract(model);
+                return RedirectToAction("Index");
             }
 
-            var contract = await _context.Contract
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (contract == null)
-            {
-                return NotFound();
-            }
-
-            return View(contract);
+            return View(model);
         }
 
-        // GET: Contracts/Create
-        public IActionResult Create()
+        [HttpPost]
+        public IActionResult ContractDelete(int? id)
+        {
+            contractsRepository.DeleteContract(new Contract() { Id = id });
+            return RedirectToAction("Index");
+        }
+
+        public async Task<List<Contract>> ImportExcel(IFormFile file)
+        {
+            var list = new List<Contract>();
+            using (var stream = new MemoryStream())
+            {
+                if (file == null)
+                {
+                    return list;
+                }
+                await file.CopyToAsync(stream);
+                using (var packeg = new ExcelPackage(stream))
+                {
+                    ExcelWorksheet worksheet = packeg.Workbook.Worksheets[0];
+                    var rowcount = worksheet.Dimension.Rows;
+                    for (int row = 1; row <= rowcount ; row++)
+                    {
+                        list.Add(new Contract(){
+                            Shifr_Contract = Convert.ToInt32(worksheet.Cells[row, 1].Value.ToString().Trim()),
+                            Name_Contract = worksheet.Cells[row, 2].Value.ToString().Trim(),
+                            Seller = worksheet.Cells[row, 3].Value.ToString().Trim()
+                        });
+                    }
+                }
+            }
+            foreach (var item in list)
+            {
+                contractsRepository.SaveContract(item);
+            }
+            return list;
+        }
+
+        public IActionResult Imports()
         {
             return View();
-        }
-
-        // POST: Contracts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Shifr_Contract,Name_Contract,Seller")] Contract contract)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(contract);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(contract);
-        }
-
-        // GET: Contracts/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Contract == null)
-            {
-                return NotFound();
-            }
-
-            var contract = await _context.Contract.FindAsync(id);
-            if (contract == null)
-            {
-                return NotFound();
-            }
-            return View(contract);
-        }
-
-        // POST: Contracts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Shifr_Contract,Name_Contract,Seller")] Contract contract)
-        {
-            if (id != contract.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(contract);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ContractExists(contract.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(contract);
-        }
-
-        // GET: Contracts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Contract == null)
-            {
-                return NotFound();
-            }
-
-            var contract = await _context.Contract
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (contract == null)
-            {
-                return NotFound();
-            }
-
-            return View(contract);
-        }
-
-        // POST: Contracts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Contract == null)
-            {
-                return Problem("Entity set 'ImportXmlToJsonContext.Contract'  is null.");
-            }
-            var contract = await _context.Contract.FindAsync(id);
-            if (contract != null)
-            {
-                _context.Contract.Remove(contract);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ContractExists(int id)
-        {
-          return (_context.Contract?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

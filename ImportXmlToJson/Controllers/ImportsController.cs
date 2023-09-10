@@ -1,163 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ImportXmlToJson.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using ImportXmlToJson.Models;
+using ImportXmlToJson.Domain;
+using System.Text.Json;
 
 namespace ImportXmlToJson.Controllers
 {
     public class ImportsController : Controller
     {
-        private readonly ImportXmlToJsonContext _context;
+        private readonly ImportsRepository importsRepository;
 
-        public ImportsController(ImportXmlToJsonContext context)
+        public ImportsController(ImportsRepository importsRepository)
         {
-            _context = context;
+            this.importsRepository = importsRepository;
         }
 
-        // GET: Imports
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-              return _context.Imports != null ? 
-                          View(await _context.Imports.ToListAsync()) :
-                          Problem("Entity set 'ImportXmlToJsonContext.Import'  is null.");
+            var model = importsRepository.GetImports();
+            return View(model);
         }
 
-        // GET: Imports/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult ImportEdit(int? id)
         {
-            if (id == null || _context.Imports == null)
-            {
-                return NotFound();
-            }
-
-            var import = await _context.Imports
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (import == null)
-            {
-                return NotFound();
-            }
-
-            return View(import);
-        }
-
-        // GET: Imports/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Imports/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+            Imports model = id == null ? new Imports() : importsRepository.GetImportsById(id);
+            return View(model);
+        }     
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NameStage,StardDate,EndDate")] Imports import)
+        public IActionResult ImportsEdit(Imports model)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(import);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                importsRepository.SaveImports(model);
+                return RedirectToAction("Index");
             }
-            return View(import);
+
+            return View(model);
         }
 
-        // GET: Imports/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult JsonSerialization(Imports model)
         {
-            if (id == null || _context.Imports == null)
-            {
-                return NotFound();
-            }
-
-            var import = await _context.Imports.FindAsync(id);
-            if (import == null)
-            {
-                return NotFound();
-            }
-            return View(import);
+            var dataBase = importsRepository.GetImports();
+            var json = JsonSerializer.Serialize(dataBase);
+            return Ok(json);
         }
 
-        // POST: Imports/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NameStage,StardDate,EndDate")] Imports import)
+        public IActionResult JsonSerializationByStage(string stage)
         {
-            if (id != import.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(import);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ImportExists(import.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(import);
-        }
-
-        // GET: Imports/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Imports == null)
-            {
-                return NotFound();
-            }
-
-            var import = await _context.Imports
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (import == null)
-            {
-                return NotFound();
-            }
-
-            return View(import);
-        }
-
-        // POST: Imports/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Imports == null)
-            {
-                return Problem("Entity set 'ImportXmlToJsonContext.Import'  is null.");
-            }
-            var import = await _context.Imports.FindAsync(id);
-            if (import != null)
-            {
-                _context.Imports.Remove(import);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ImportExists(int id)
-        {
-          return (_context.Imports?.Any(e => e.Id == id)).GetValueOrDefault();
+            Imports model = stage == null ? new Imports() : importsRepository.GetImportsByStage(stage);
+            var json = JsonSerializer.Serialize(model);
+            return Ok(json);
         }
     }
 }

@@ -1,47 +1,45 @@
-﻿@model IEnumerable<ImportXmlToJson.Models.Imports>
+﻿@using ImportXmlToJson.Domain;
+@model IEnumerable<ImportXmlToJson.Models.Imports>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Title";
 }
 
-<h1>Index</h1>
+<body>
+    <h1>Работа с договорами</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
+    <a asp-controller="Imports" asp-action="JsonSerialization">Выгрузить все данные в Json формат</a>
+
+    <form asp-controller="Imports" asp-action="JsonSerializationByStage" style="margin-top: 15px;">
+        <input name="stage" />
+        <button type="submit" class="btn btn-primary" >Выгрузить данные по указанному Этапу</button>
+    </form>
+
+    <table class="table">
+        <thead>
             <th>
-                @Html.DisplayNameFor(model => model.NameStage)
+                @Html.DisplayNameFor( x => x.Contract_Stage)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StardDate)
+                @Html.DisplayNameFor( x => x.StartDate)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.EndDate)
+                @Html.DisplayNameFor( x => x.EndDate)
             </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.NameStage)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StardDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Добавить</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Информация</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Удалить</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (Imports entity in Model)
+            {
+                <th>
+                    @entity.Contract_Stage
+                </th>
+                <th>
+                    @entity.StartDate
+                </th>
+                <th>
+                    @entity.EndDate
+                </th>
+            }
+        </tbody>
+    </table>
+</body>

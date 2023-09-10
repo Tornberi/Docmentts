@@ -2,10 +2,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using ImportXmlToJson.Data;
 using ImportXmlToJson.Models;
+using ImportXmlToJson.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ImportXmlToJsonContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ImportXmlToJsonContext") ?? throw new InvalidOperationException("Connection string 'ImportXmlToJsonContext' not found.")));
+
+builder.Services.AddTransient<ContractsRepository>();
+builder.Services.AddTransient<ImportsRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
